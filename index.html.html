@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoUHaveCancer — Cognitive Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#08080c; --bg-1:#0d0d15;
+    --surface:rgba(255,255,255,.025); --surface-2:rgba(255,255,255,.05);
+    --line:rgba(255,255,255,.09); --text:#e9e9f4; --muted:#8688a6;
+    --verbal:#00f0ff; --numerical:#ffb02e; --abstract:#ff2bd6;
+    --spatial:#b6ff3a; --memory:#a468ff; --speed:#ff5277;
+    --display:'Orbitron',ui-monospace,monospace;
+    --head:'Rajdhani',system-ui,sans-serif;
+    --body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 50% -10%, rgba(0,240,255,.06), transparent 60%),
+      radial-gradient(900px 600px at 110% 110%, rgba(255,43,214,.06), transparent 55%),
+      linear-gradient(180deg,var(--bg-1),var(--bg-0));
+    background-attachment:fixed; color:var(--text); font-family:var(--body);
+    min-height:100vh; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:28px 20px 64px;min-height:100vh;display:flex;flex-direction:column}
+  .brandbar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .brandbar .mark{font-family:var(--display);font-weight:900;letter-spacing:.32em;font-size:14px;
+    background:linear-gradient(90deg,var(--verbal),var(--abstract) 50%,var(--spatial));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .brandbar .tag{font-family:var(--head);font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-size:10px;color:var(--muted)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:26px}
+  h1{font-family:var(--display);font-weight:900;font-size:clamp(34px,8vw,58px);line-height:.98;margin:.2em 0 .35em;letter-spacing:.02em}
+  h1 .grad{background:linear-gradient(100deg,var(--verbal),var(--abstract) 50%,var(--spatial));-webkit-background-clip:text;background-clip:text;color:transparent}
+  p{color:#c7c8da;margin:0 0 14px}
+  .muted{color:var(--muted)}
+  .lede{font-size:17px;color:#d4d5e6}
+
+  .btn{font-family:var(--head);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:15px;
+    color:#04060a;background:linear-gradient(100deg,var(--verbal),#7fe9ff);border:none;border-radius:12px;padding:15px 30px;cursor:pointer;
+    box-shadow:0 0 0 1px rgba(0,240,255,.5),0 8px 30px rgba(0,240,255,.22);transition:transform .12s ease, box-shadow .2s ease}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(0,240,255,.7),0 12px 38px rgba(0,240,255,.34)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:transparent;color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+  .btn.ghost:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);transform:translateY(-1px)}
+  .btn:focus-visible,.opt:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none;box-shadow:inset 0 0 0 1px var(--line)}
+
+  .disclaimer{font-size:12.5px;color:var(--muted);border-left:2px solid rgba(255,255,255,.14);padding:4px 0 4px 14px;margin-top:18px}
+
+  .domains{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 26px}
+  .chip{font-family:var(--head);font-weight:600;letter-spacing:.05em;font-size:12.5px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .dot{width:8px;height:8px;border-radius:50%}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+  .eyebrow{font-family:var(--head);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:11px}
+  .count{font-family:var(--display);font-weight:700;font-size:12px;color:var(--muted);letter-spacing:.1em}
+  .track{height:4px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;margin-bottom:24px}
+  .fill{height:100%;width:0;border-radius:4px;transition:width .35s cubic-bezier(.4,0,.2,1)}
+
+  .prompt{font-family:var(--head);font-weight:600;font-size:21px;line-height:1.35;margin:0 0 6px}
+  .stim{display:flex;justify-content:center;margin:18px 0 8px}
+  .stim svg{max-width:170px;width:60%;height:auto}
+  .stimcap{text-align:center;font-size:13px;color:var(--muted);margin-top:6px}
+  .opts{display:grid;gap:12px;margin-top:22px}
+  .opts.grid{grid-template-columns:repeat(2,1fr)}
+  .opt{appearance:none;text-align:left;font-family:var(--body);font-size:16px;color:var(--text);
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;cursor:pointer;
+    transition:border-color .15s, background .15s, transform .08s;display:flex;align-items:center;justify-content:center;min-height:58px}
+  .opt.text{justify-content:flex-start}
+  .opt.mono{font-family:var(--display);font-weight:700;letter-spacing:.28em;font-size:20px;justify-content:center}
+  .opt svg{width:74px;height:74px}
+  .opt:hover{border-color:rgba(255,255,255,.28);background:var(--surface-2)}
+  .opt:active{transform:scale(.99)}
+  .opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);box-shadow:0 0 0 1px var(--accent),0 0 20px -4px var(--accent)}
+  .opt.sel .lbl{color:var(--accent)}
+  .lbl{font-family:var(--display);font-weight:700;font-size:12px;margin-right:12px;color:var(--muted);letter-spacing:.06em}
+  .nav{display:flex;justify-content:space-between;gap:12px;margin-top:26px}
+
+  /* memory + speed */
+  .memstage{display:flex;flex-direction:column;align-items:center;gap:16px;margin:26px 0 8px}
+  .seq{font-family:var(--display);font-weight:900;font-size:clamp(30px,9vw,52px);letter-spacing:.18em;color:var(--accent);text-shadow:0 0 22px var(--accent);min-height:62px;display:flex;align-items:center}
+  .ring{font-family:var(--display);font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em}
+  .speedstage{display:flex;flex-direction:column;align-items:center;gap:18px;margin:22px 0 6px}
+  .speedpair{display:flex;flex-direction:column;gap:8px;align-items:center}
+  .speedstr{font-family:var(--display);font-weight:700;font-size:clamp(26px,7vw,40px);letter-spacing:.22em;color:#e9e9f4}
+  .speedbtns{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:420px}
+  .sbtn{font-family:var(--head);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:16px;padding:18px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}
+  .sbtn:active{transform:scale(.98)}
+  .sbtn.same{box-shadow:inset 0 0 0 1px rgba(182,255,58,.4)}
+  .sbtn.diff{box-shadow:inset 0 0 0 1px rgba(255,82,119,.4)}
+  .timerbar{height:6px;width:100%;max-width:420px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden}
+  .timerbar i{display:block;height:100%;background:var(--accent);width:100%}
+  .speedscore{font-family:var(--display);font-weight:900;font-size:40px;color:var(--accent);text-shadow:0 0 20px var(--accent)}
+
+  /* results */
+  .scorewrap{text-align:center;margin:6px 0 4px}
+  .scorelabel{font-family:var(--head);font-weight:700;letter-spacing:.22em;text-transform:uppercase;font-size:11px;color:var(--muted)}
+  .score{font-family:var(--display);font-weight:900;font-size:clamp(64px,17vw,108px);line-height:1;margin:4px 0;
+    background:linear-gradient(100deg,var(--verbal),var(--abstract) 55%,var(--spatial));-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 22px rgba(0,240,255,.25))}
+  .pct{font-family:var(--head);font-weight:600;font-size:16px;color:#d4d5e6;min-height:24px}
+  .pct b{color:var(--verbal)}
+  .radar{display:flex;justify-content:center;margin:14px 0 6px}
+  .radar svg{width:100%;max-width:440px;height:auto}
+  .legend{display:grid;gap:8px;margin:16px 0 4px}
+  .legrow{display:flex;align-items:center;gap:10px;font-size:13.5px}
+  .legrow .nm{flex:1;color:#d4d5e6}
+  .legrow .bar{height:6px;border-radius:6px;background:rgba(255,255,255,.07);flex:0 0 38%;overflow:hidden}
+  .legrow .barfill{height:100%;border-radius:6px}
+  .legrow .vv{font-family:var(--display);font-weight:700;font-size:11px;width:40px;text-align:right;color:var(--muted)}
+  .domsum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0 6px}
+  .domsum .b{border:1px solid var(--line);border-radius:12px;padding:13px;text-align:center}
+  .domsum .b .h{font-family:var(--head);font-weight:700;letter-spacing:.05em;font-size:11px;text-transform:uppercase}
+  .domsum .b .v{font-family:var(--display);font-weight:900;font-size:23px;margin-top:3px}
+  .resnav{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+  .resnav .btn{flex:1;min-width:150px;text-align:center}
+  .hint{font-size:12.5px;color:var(--muted);text-align:center;margin-top:12px}
+
+  @media (max-width:480px){ .card{padding:20px} }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+  .fade{animation:fade .35s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar"><span class="mark">DoUHaveCancer</span><span class="tag">Cognitive Profile</span></div>
+  <div id="app"></div>
+</div>
+
+<script>
+/* ============================================================
+   DoUHaveCancer — 6 domains · 12 sub-skills · composite norm
+   Real percentile via Cloudflare D1 (graceful fallback)
+   ============================================================ */
+
+/* Set to "" when hosted on Cloudflare Pages (same origin).
+   Set to "https://your-worker.workers.dev" if the API lives elsewhere. */
+const API_BASE = "";
+
+/* ---------- SVG helpers ---------- */
+const NS="http://www.w3.org/2000/svg";
+function svg(inner,vb="0 0 40 40",cls=""){return `<svg class="${cls}" viewBox="${vb}" xmlns="${NS}">${inner}</svg>`;}
+function polyPoints(sides,cx,cy,r,rot=-Math.PI/2){let p=[];for(let i=0;i<sides;i++){const a=rot+i*2*Math.PI/sides;p.push((cx+r*Math.cos(a)).toFixed(2)+","+(cy+r*Math.sin(a)).toFixed(2));}return p.join(" ");}
+function gDots(n,c){const xs=[12,20,28],ys=[16,26];let m="",k=0;for(let r=0;r<2;r++)for(let col=0;col<3;col++){if(k<n)m+=`<rect x="${xs[col]-3}" y="${ys[r]-3}" width="6" height="6" rx="1" fill="${c}"/>`;k++;}return m;}
+function gPoly(s,c){return `<polygon points="${polyPoints(s,20,20,13)}" fill="none" stroke="${c}" stroke-width="2"/>`;}
+function gShape(k,c){
+  if(k==="sq")return `<rect x="9" y="9" width="22" height="22" rx="2" fill="none" stroke="${c}" stroke-width="2"/>`;
+  if(k==="rect")return `<rect x="7" y="13" width="26" height="14" rx="2" fill="none" stroke="${c}" stroke-width="2"/>`;
+  if(k==="par")return `<polygon points="13,28 18,12 33,12 28,28" fill="none" stroke="${c}" stroke-width="2"/>`;
+  if(k==="tri")return `<polygon points="20,9 32,30 8,30" fill="none" stroke="${c}" stroke-width="2"/>`;
+}
+function gFlag(rot,mirror,c){let t=`rotate(${rot} 20 20)`;if(mirror)t=`translate(40 0) scale(-1 1) `+t;
+  return `<g transform="${t}"><line x1="16" y1="8" x2="16" y2="33" stroke="${c}" stroke-width="3" stroke-linecap="round"/><polygon points="16,9 31,13 16,19" fill="${c}"/></g>`;}
+function gQ(){return `<text x="20" y="27" text-anchor="middle" font-family="Orbitron,monospace" font-weight="900" font-size="22" fill="#6b6d86">?</text>`;}
+function matrixSVG(cells,c){const size=40,gap=8,span=size*3+gap*2;let m="";
+  for(let i=0;i<9;i++){const cx=(i%3)*(size+gap),cy=Math.floor(i/3)*(size+gap);
+    m+=`<g transform="translate(${cx} ${cy})"><rect x="1" y="1" width="38" height="38" rx="5" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
+    const cc=cells[i];
+    if(cc==="q")m+=gQ();else if(cc.k==="dots")m+=gDots(cc.n,c);else if(cc.k==="poly")m+=gPoly(cc.s,c);
+    m+=`</g>`;}
+  return svg(m,`0 0 ${span} ${span}`,"");}
+function holeSquare(holes,folds,c,showFolds){const a=4,s=32;
+  let m=`<rect x="${a}" y="${a}" width="${s}" height="${s}" rx="3" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>`;
+  if(showFolds&&folds)folds.forEach(f=>{if(f==="v")m+=`<line x1="20" y1="${a}" x2="20" y2="${a+s}" stroke="rgba(255,255,255,.3)" stroke-width="1" stroke-dasharray="3 3"/>`;if(f==="h")m+=`<line x1="${a}" y1="20" x2="${a+s}" y2="20" stroke="rgba(255,255,255,.3)" stroke-width="1" stroke-dasharray="3 3"/>`;});
+  holes.forEach(h=>{m+=`<circle cx="${(a+h.x*s).toFixed(1)}" cy="${(a+h.y*s).toFixed(1)}" r="2.7" fill="${c}"/>`;});
+  return svg(m,"0 0 40 40","");}
+
+/* ---------- domains + axes ---------- */
+const DOM={
+  verbal:{name:"Verbal",hex:"#00f0ff"}, numerical:{name:"Numerical",hex:"#ffb02e"},
+  abstract:{name:"Abstract",hex:"#ff2bd6"}, spatial:{name:"Spatial",hex:"#b6ff3a"},
+  memory:{name:"Memory",hex:"#a468ff"}, speed:{name:"Speed",hex:"#ff5277"},
+};
+const AXES=[
+  {key:"Vocabulary",dom:"verbal"},{key:"Analogies",dom:"verbal"},
+  {key:"Arithmetic",dom:"numerical"},{key:"Number series",dom:"numerical"},
+  {key:"Matrices",dom:"abstract"},{key:"Figure logic",dom:"abstract"},
+  {key:"Rotation",dom:"spatial"},{key:"Folding",dom:"spatial"},
+  {key:"Forward span",dom:"memory"},{key:"Reverse span",dom:"memory"},
+  {key:"Scan speed",dom:"speed"},{key:"Match speed",dom:"speed"},
+];
+const C={v:"#00f0ff",n:"#ffb02e",a:"#ff2bd6",s:"#b6ff3a"};
+
+/* option builders */
+function T(arr,ci){return arr.map((t,i)=>({html:t,kind:"text",correct:i===ci}));}
+function S(arr){return arr.map(o=>({html:o.svg,kind:"svg",correct:!!o.correct}));}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- question bank ---------- */
+const Q=[
+  /* VERBAL */
+  {axis:"Vocabulary",type:"mc",prompt:"Which word is closest in meaning to ABATE?",opts:T(["Lessen","Strengthen","Confuse","Delay"],0)},
+  {axis:"Vocabulary",type:"mc",prompt:"Which word is closest in meaning to CANDID?",opts:T(["Frank","Secretive","Hostile","Anxious"],0)},
+  {axis:"Analogies",type:"mc",prompt:"OASIS is to DESERT as ISLAND is to ___",opts:T(["Ocean","Sand","Palm","Beach"],0)},
+  {axis:"Analogies",type:"mc",prompt:"FEATHERS are to BIRD as ___ are to FISH",opts:T(["Scales","Fins","Gills","Water"],0)},
+
+  /* NUMERICAL */
+  {axis:"Arithmetic",type:"mc",prompt:"A jacket costs £48 after a 20% discount. What was the original price?",opts:T(["£60","£58","£72","£54"],0)},
+  {axis:"Arithmetic",type:"mc",prompt:"If 4 notebooks cost £6, how much do 10 notebooks cost?",opts:T(["£15","£12","£18","£14"],0)},
+  {axis:"Number series",type:"mc",prompt:"What comes next?   3, 9, 27, 81, ?",opts:T(["243","162","108","216"],0)},
+  {axis:"Number series",type:"mc",prompt:"What comes next?   1, 4, 9, 16, 25, ?",opts:T(["36","30","49","32"],0)},
+
+  /* ABSTRACT */
+  {axis:"Matrices",type:"mc",prompt:"Which figure completes the grid?",
+   stim:matrixSVG([{k:"dots",n:1},{k:"dots",n:2},{k:"dots",n:3},{k:"dots",n:2},{k:"dots",n:3},{k:"dots",n:4},{k:"dots",n:3},{k:"dots",n:4},"q"],C.a),
+   opts:S([{svg:svg(gDots(4,C.a))},{svg:svg(gDots(5,C.a)),correct:true},{svg:svg(gDots(6,C.a))},{svg:svg(gDots(3,C.a))}])},
+  {axis:"Matrices",type:"mc",prompt:"Which figure completes the grid?",
+   stim:matrixSVG([{k:"poly",s:3},{k:"poly",s:4},{k:"poly",s:5},{k:"poly",s:4},{k:"poly",s:5},{k:"poly",s:6},{k:"poly",s:5},{k:"poly",s:6},"q"],C.a),
+   opts:S([{svg:svg(gPoly(6,C.a))},{svg:svg(gPoly(7,C.a)),correct:true},{svg:svg(gPoly(8,C.a))},{svg:svg(gPoly(5,C.a))}])},
+  {axis:"Figure logic",type:"mc",prompt:"Which figure does not belong?",
+   opts:S([{svg:svg(gShape("sq",C.a))},{svg:svg(gShape("rect",C.a))},{svg:svg(gShape("par",C.a))},{svg:svg(gShape("tri",C.a)),correct:true}])},
+  {axis:"Figure logic",type:"mc",prompt:"Three figures are rotations of one shape. Which is the odd one out?",
+   opts:S([{svg:svg(gFlag(0,false,C.a))},{svg:svg(gFlag(90,false,C.a))},{svg:svg(gFlag(180,false,C.a))},{svg:svg(gFlag(90,true,C.a)),correct:true}])},
+
+  /* SPATIAL */
+  {axis:"Rotation",type:"mc",prompt:"Which option is a rotation (not a mirror image) of the figure above?",
+   stim:svg(gFlag(0,false,C.s)),
+   opts:S([{svg:svg(gFlag(90,true,C.s))},{svg:svg(gFlag(135,false,C.s)),correct:true},{svg:svg(gFlag(0,true,C.s))},{svg:svg(gFlag(270,true,C.s))}])},
+  {axis:"Rotation",type:"mc",prompt:"Which option is a rotation (not a mirror image) of the figure above?",
+   stim:svg(gFlag(0,false,C.s)),
+   opts:S([{svg:svg(gFlag(45,true,C.s))},{svg:svg(gFlag(180,true,C.s))},{svg:svg(gFlag(225,false,C.s)),correct:true},{svg:svg(gFlag(90,true,C.s))}])},
+  {axis:"Folding",type:"mc",prompt:"The paper is folded along the dashed line, then punched. How will it look unfolded?",
+   stim:holeSquare([{x:.74,y:.42}],["v"],C.s,true),stimcap:"Folded once (left over right), then punched.",
+   opts:S([{svg:holeSquare([{x:.74,y:.42}],null,C.s,false)},{svg:holeSquare([{x:.26,y:.42},{x:.74,y:.42}],null,C.s,false),correct:true},{svg:holeSquare([{x:.5,y:.42}],null,C.s,false)},{svg:holeSquare([{x:.26,y:.42},{x:.74,y:.42},{x:.26,y:.72},{x:.74,y:.72}],null,C.s,false)}])},
+  {axis:"Folding",type:"mc",prompt:"The paper is folded into quarters, then punched. How will it look unfolded?",
+   stim:holeSquare([{x:.72,y:.72}],["v","h"],C.s,true),stimcap:"Folded twice (into quarters), then punched.",
+   opts:S([{svg:holeSquare([{x:.28,y:.28},{x:.72,y:.28},{x:.28,y:.72},{x:.72,y:.72}],null,C.s,false),correct:true},{svg:holeSquare([{x:.28,y:.72},{x:.72,y:.72}],null,C.s,false)},{svg:holeSquare([{x:.72,y:.72}],null,C.s,false)},{svg:holeSquare([{x:.42,y:.42},{x:.58,y:.42},{x:.42,y:.58},{x:.58,y:.58}],null,C.s,false)}])},
+
+  /* MEMORY */
+  {axis:"Forward span",type:"memory",reverse:false,seq:[4,7,2,9,5]},
+  {axis:"Forward span",type:"memory",reverse:false,seq:[3,8,1,6,9,2]},
+  {axis:"Reverse span",type:"memory",reverse:true,seq:[5,2,8,1]},
+  {axis:"Reverse span",type:"memory",reverse:true,seq:[7,3,9,4,6]},
+
+  /* SPEED */
+  {axis:"Scan speed",type:"speed",mode:"digits",dur:25000},
+  {axis:"Match speed",type:"speed",mode:"symbols",dur:25000},
+];
+
+/* build memory options lazily (deterministic enough; correctness tracked by value) */
+function memBuild(qi){
+  const q=Q[qi];
+  const base=q.reverse?[...q.seq].reverse():q.seq;
+  const correct=base.join(" ");
+  const set=new Set([correct]);
+  const variants=[
+    ()=>{const d=[...base];d[2]=(d[2]+3)%10;return d;},
+    ()=>{const d=[...base];[d[1],d[2]]=[d[2],d[1]];return d;},
+    ()=>{const d=[...base];[d[0],d[d.length-1]]=[d[d.length-1],d[0]];return d;},
+    ()=>{const d=[...base];d[1]=(d[1]+5)%10;return d;},
+  ];
+  for(const v of variants){const s=v().join(" ");if(s!==correct)set.add(s);if(set.size>=4)break;}
+  let arr=shuffle([...set].slice(0,4));
+  return arr.map(s=>({html:s,kind:"mono",correct:s===correct}));
+}
+
+/* ---------- composite norm ---------- */
+const MU_PCT=52, SIG_PCT=16;
+function erf(x){const s=x<0?-1:1;x=Math.abs(x);const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911;const t=1/(1+p*x);const y=1-(((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t)*Math.exp(-x*x);return s*y;}
+const phi=z=>.5*(1+erf(z/Math.SQRT2));
+function compositeToIQ(overallPct){
+  const z=(overallPct-MU_PCT)/SIG_PCT;
+  const iq=Math.max(55,Math.min(145,Math.round(100+15*z)));
+  const pct=Math.max(1,Math.min(99,Math.round(phi(z)*100)));
+  return {iq,pct};
+}
+
+/* ---------- state ---------- */
+let state={screen:"landing",i:0,outcome:Array(Q.length).fill(null),answers:Array(Q.length).fill(null),mem:{}};
+const app=document.getElementById("app");
+function go(scr){state.screen=scr;render();window.scrollTo(0,0);}
+
+function render(){
+  if(state.screen==="landing")return renderLanding();
+  if(state.screen==="question")return renderQuestion();
+  if(state.screen==="results")return renderResults();
+}
+
+/* ---------- landing ---------- */
+function renderLanding(){
+  const chips=Object.values(DOM).map(d=>`<span class="chip"><span class="dot" style="background:${d.hex};box-shadow:0 0 8px ${d.hex}"></span>${d.name}</span>`).join("");
+  app.innerHTML=`<div class="card fade">
+    <h1><span class="grad">Bad news:<br>it's your brain.</span></h1>
+    <p class="lede">You came to find out if you have cancer. We can't help with that. What we <em>can</em> do is tell you how your brain is performing — which, depending on the results, might be the worse news.</p>
+    <div class="domains">${chips}</div>
+    <p class="muted" style="margin-bottom:22px">22 tasks across 6 cognitive domains · ~20 minutes · untimed except the speed rounds. No stethoscope required.</p>
+    <button class="btn" id="start">Diagnose my brain</button>
+    <div class="disclaimer">Not a cancer screening. Not a medical test of any kind. Also not a clinically validated IQ test — a real cognitive score requires a proctored instrument like the WAIS or Stanford-Binet. This is for entertainment. Please do not cite it to your GP.</div>
+  </div>`;
+  document.getElementById("start").onclick=()=>{state.i=0;go("question");};
+}
+
+/* ---------- question router ---------- */
+function renderQuestion(){
+  const q=Q[state.i];
+  if(q.type==="memory")return renderMemory();
+  if(q.type==="speed")return renderSpeed();
+  return renderMC();
+}
+
+function shell(inner,navDisabled){
+  const q=Q[state.i];const ax=AXES.find(a=>a.key===q.axis);const d=DOM[ax.dom];const total=Q.length;
+  app.innerHTML=`<div class="card fade">
+    <div class="topbar"><span class="eyebrow" style="color:${d.hex}">${d.name} · ${q.axis}</span>
+      <span class="count">${String(state.i+1).padStart(2,"0")} / ${total}</span></div>
+    <div class="track"><div class="fill" style="width:${(state.i/total)*100}%;background:linear-gradient(90deg,${d.hex},#fff2)"></div></div>
+    ${inner}
+    <div class="nav">
+      <button class="btn ghost" id="back" ${state.i===0?"disabled":""}>Back</button>
+      <button class="btn" id="next" ${navDisabled?"disabled":""}>${state.i===total-1?"See results":"Next"}</button>
+    </div></div>`;
+  document.getElementById("back").onclick=()=>{if(state.i>0){state.i--;render();window.scrollTo(0,0);}};
+  document.getElementById("next").onclick=()=>{
+    if(state.i===total-1)go("results");
+    else{state.i++;render();window.scrollTo(0,0);}
+  };
+}
+
+/* ---------- multiple choice (text / svg) ---------- */
+function renderMC(){
+  const q=Q[state.i];const ax=AXES.find(a=>a.key===q.axis);const d=DOM[ax.dom];
+  const sel=state.answers[state.i];const isGrid=q.opts[0].kind!=="text";
+  const optsHTML=q.opts.map((o,idx)=>{
+    const lab=String.fromCharCode(65+idx);const selCls=sel===idx?"sel":"";
+    if(o.kind==="text")return `<button class="opt text ${selCls}" data-i="${idx}" style="--accent:${d.hex}"><span class="lbl">${lab}</span>${o.html}</button>`;
+    if(o.kind==="mono")return `<button class="opt mono ${selCls}" data-i="${idx}" style="--accent:${d.hex}">${o.html}</button>`;
+    return `<button class="opt ${selCls}" data-i="${idx}" aria-label="Option ${lab}" style="--accent:${d.hex}">${o.html}</button>`;
+  }).join("");
+  const inner=`<p class="prompt">${q.prompt}</p>
+    ${q.stim?`<div class="stim">${q.stim}</div>`:``}
+    ${q.stimcap?`<div class="stimcap">${q.stimcap}</div>`:``}
+    <div class="opts ${isGrid?"grid":""}">${optsHTML}</div>`;
+  shell(inner,sel===null);
+  app.querySelectorAll(".opt").forEach(b=>{b.onclick=()=>{
+    const idx=+b.dataset.i;state.answers[state.i]=idx;state.outcome[state.i]=q.opts[idx].correct?1:0;
+    app.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");
+    document.getElementById("next").removeAttribute("disabled");
+  };});
+}
+
+/* ---------- memory (show → recognise) ---------- */
+let memTimer=null;
+function renderMemory(){
+  const q=Q[state.i];const ax=AXES.find(a=>a.key===q.axis);const d=DOM[ax.dom];
+  const st=state.mem[state.i]||(state.mem[state.i]={phase:"ready",opts:null});
+  let inner;
+  if(st.phase==="ready"){
+    inner=`<p class="prompt">${q.reverse?"Memorise the sequence — you'll pick it out in reverse order.":"Memorise the sequence, then pick it out."}</p>
+      <div class="memstage"><div class="seq" style="--accent:${d.hex}">• • • • •</div>
+      <button class="btn" id="showseq" style="background:linear-gradient(100deg,${d.hex},#fff8)">Show sequence</button></div>`;
+    shell(inner,true);
+    document.getElementById("showseq").onclick=()=>revealSeq(d);
+  } else if(st.phase==="answer"){
+    const sel=state.answers[state.i];
+    const optsHTML=st.opts.map((o,idx)=>`<button class="opt mono ${sel===idx?"sel":""}" data-i="${idx}" style="--accent:${d.hex}">${o.html}</button>`).join("");
+    inner=`<p class="prompt">${q.reverse?"Which is the sequence — in reverse?":"Which sequence did you see?"}</p><div class="opts">${optsHTML}</div>`;
+    shell(inner,sel===null);
+    app.querySelectorAll(".opt").forEach(b=>{b.onclick=()=>{
+      const idx=+b.dataset.i;state.answers[state.i]=idx;state.outcome[state.i]=st.opts[idx].correct?1:0;
+      app.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");
+      document.getElementById("next").removeAttribute("disabled");
+    };});
+  }
+}
+function revealSeq(d){
+  const q=Q[state.i];const st=state.mem[state.i];
+  const seqEl=app.querySelector(".seq");const btn=document.getElementById("showseq");
+  if(btn)btn.style.display="none";
+  const ms=900+q.seq.length*480;let remain=Math.ceil(ms/1000);
+  seqEl.textContent=q.seq.join("   ");
+  let ring=document.createElement("div");ring.className="ring";ring.textContent=remain+"s";
+  seqEl.parentElement.appendChild(ring);
+  memTimer=setInterval(()=>{remain--;if(ring)ring.textContent=remain+"s";if(remain<=0)clearInterval(memTimer);},1000);
+  setTimeout(()=>{clearInterval(memTimer);st.opts=memBuild(state.i);st.phase="answer";renderMemory();},ms);
+}
+
+/* ---------- speed (timed burst) ---------- */
+let spState=null;
+function renderSpeed(){
+  const q=Q[state.i];const ax=AXES.find(a=>a.key===q.axis);const d=DOM[ax.dom];
+  const done=state.outcome[state.i]!==null;
+  if(done){
+    const pct=Math.round(state.outcome[state.i]*100);
+    const inner=`<p class="prompt">Round complete.</p>
+      <div class="speedstage"><div class="speedscore" style="--accent:${d.hex}">${pct}%</div>
+      <p class="muted" style="text-align:center">${state.mem["sp"+state.i]||""}</p></div>`;
+    shell(inner,false);return;
+  }
+  const inner=`<p class="prompt">Speed round — ${q.mode==="digits"?"are the two number strings the SAME or DIFFERENT?":"are the two symbol strings the SAME or DIFFERENT?"}</p>
+    <p class="muted">Go as fast and accurately as you can for 25 seconds. Tap to begin.</p>
+    <div class="speedstage"><button class="btn" id="spstart" style="background:linear-gradient(100deg,${d.hex},#fff8)">Begin round</button></div>`;
+  shell(inner,true);
+  document.getElementById("spstart").onclick=()=>runSpeed(q,d);
+}
+function randStr(mode){
+  const set=mode==="digits"?"0123456789":"▲●■◆★✦";
+  const len=mode==="digits"?4:4;let s="";for(let i=0;i<len;i++)s+=set[Math.floor(Math.random()*set.length)];return s;
+}
+function runSpeed(q,d){
+  const ax=AXES.find(a=>a.key===q.axis);
+  let correct=0,attempt=0,a,b;
+  const stage=app.querySelector(".speedstage");
+  stage.innerHTML=`<div class="timerbar"><i id="tb" style="--accent:${d.hex};background:${d.hex}"></i></div>
+    <div class="speedpair"><div class="speedstr" id="sa"></div><div class="speedstr" id="sb"></div></div>
+    <div class="speedbtns"><button class="sbtn same" id="bsame">Same</button><button class="sbtn diff" id="bdiff">Different</button></div>
+    <div class="ring" id="spcount">0</div>`;
+  const sa=document.getElementById("sa"),sb=document.getElementById("sb"),tb=document.getElementById("tb"),cnt=document.getElementById("spcount");
+  function nextTrial(){
+    a=randStr(q.mode);
+    if(Math.random()<0.5){b=a;}else{b=randStr(q.mode);if(b===a)b=randStr(q.mode);}
+    sa.textContent=a;sb.textContent=b;
+  }
+  function judge(saysSame){
+    attempt++;const isSame=a===b;if(saysSame===isSame)correct++;
+    cnt.textContent=correct;nextTrial();
+  }
+  document.getElementById("bsame").onclick=()=>judge(true);
+  document.getElementById("bdiff").onclick=()=>judge(false);
+  // keyboard support
+  const keyfn=e=>{if(e.key==="ArrowLeft")judge(true);if(e.key==="ArrowRight")judge(false);};
+  window.addEventListener("keydown",keyfn);
+  nextTrial();
+  const dur=q.dur;const t0=Date.now();let ended=false;const myIndex=state.i;
+  const iv=setInterval(()=>{const f=Math.max(0,1-(Date.now()-t0)/dur);if(tb)tb.style.width=(f*100)+"%";if(f<=0)finish();},80);
+  function finish(){
+    if(ended)return;ended=true;
+    clearInterval(iv);window.removeEventListener("keydown",keyfn);
+    if(state.i!==myIndex)return; // user navigated away mid-round
+    const pct=Math.max(0,Math.min(100,Math.round(correct/12*100)));
+    state.outcome[state.i]=pct/100;
+    state.mem["sp"+state.i]=`${correct} correct of ${attempt} in 25s`;
+    renderSpeed();
+  }
+  setTimeout(finish,dur+50);
+}
+
+/* ---------- compute ---------- */
+function computeResults(){
+  const axVal={},axCnt={},axSum={};
+  AXES.forEach(a=>{axCnt[a.key]=0;axSum[a.key]=0;});
+  Q.forEach((q,i)=>{const v=state.outcome[i]==null?0:state.outcome[i];axCnt[q.axis]++;axSum[q.axis]+=v;});
+  const axisPct=AXES.map(a=>Math.round(100*axSum[a.key]/axCnt[a.key]));
+  const overall=axisPct.reduce((s,v)=>s+v,0)/axisPct.length;
+  const {iq,pct}=compositeToIQ(overall);
+  const domScore={};
+  Object.keys(DOM).forEach(dn=>{const ax=AXES.filter(a=>a.dom===dn);domScore[dn]=Math.round(ax.reduce((s,a)=>s+axisPct[AXES.indexOf(a)],0)/ax.length);});
+  return {axisPct,overall:Math.round(overall),iq,modelPct:pct,domScore};
+}
+
+/* ---------- radar (generic N) ---------- */
+function radarSVG(axisPct,size=440){
+  const cx=size/2,cy=size/2,R=size*0.33,N=AXES.length;
+  const ang=i=>-Math.PI/2+i*2*Math.PI/N;const pt=(i,r)=>[cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i))];
+  let grid="";[0.25,.5,.75,1].forEach(f=>{const p=[];for(let i=0;i<N;i++){const[x,y]=pt(i,R*f);p.push(x.toFixed(1)+","+y.toFixed(1));}grid+=`<polygon points="${p.join(" ")}" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="1"/>`;});
+  let spokes="";for(let i=0;i<N;i++){const[x,y]=pt(i,R);spokes+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;}
+  const dataPts=[];let vmark="",labels="";
+  for(let i=0;i<N;i++){const r=R*Math.max(.04,axisPct[i]/100);const[x,y]=pt(i,r);dataPts.push(x.toFixed(1)+","+y.toFixed(1));
+    const hex=DOM[AXES[i].dom].hex;vmark+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${hex}"/>`;}
+  for(let i=0;i<N;i++){const[lx,ly]=pt(i,R+24);const hex=DOM[AXES[i].dom].hex;let an="middle";if(lx>cx+6)an="start";else if(lx<cx-6)an="end";
+    labels+=`<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="${an}" font-family="Rajdhani,sans-serif" font-weight="600" font-size="11.5" fill="${hex}">${AXES[i].key}</text>`;}
+  return `<svg viewBox="0 0 ${size} ${size}" xmlns="${NS}">
+    <defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="dfill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00f0ff" stop-opacity=".48"/><stop offset=".5" stop-color="#ff2bd6" stop-opacity=".44"/><stop offset="1" stop-color="#b6ff3a" stop-opacity=".48"/></linearGradient></defs>
+    ${grid}${spokes}
+    <polygon points="${dataPts.join(" ")}" fill="url(#dfill)" stroke="#fff" stroke-opacity=".85" stroke-width="2" filter="url(#glow)"/>
+    ${vmark}${labels}</svg>`;
+}
+
+/* ---------- results ---------- */
+let LAST=null;
+function renderResults(){
+  const r=computeResults();LAST=r;LAST.shownPct=r.modelPct;LAST.real=false;
+  const legend=AXES.map((a,i)=>{const hex=DOM[a.dom].hex;return `<div class="legrow"><span class="dot" style="background:${hex};box-shadow:0 0 8px ${hex}"></span><span class="nm">${a.key}</span><span class="bar"><span class="barfill" style="width:${r.axisPct[i]}%;background:${hex};box-shadow:0 0 10px ${hex}"></span></span><span class="vv">${r.axisPct[i]}%</span></div>`;}).join("");
+  const doms=Object.keys(DOM).map(dn=>`<div class="b"><div class="h" style="color:${DOM[dn].hex}">${DOM[dn].name}</div><div class="v" style="color:${DOM[dn].hex}">${r.domScore[dn]}%</div></div>`).join("");
+  app.innerHTML=`<div class="card fade">
+    <div class="scorewrap"><div class="scorelabel">Estimated index</div><div class="score">${r.iq}</div>
+      <div class="pct" id="pctline">Higher than about <b>${r.modelPct}%</b> of people · <span class="muted">checking live results…</span></div></div>
+    <div class="radar">${radarSVG(r.axisPct)}</div>
+    <div class="domsum">${doms}</div>
+    <div class="legend">${legend}</div>
+    <div class="resnav"><button class="btn" id="share">Share result</button><button class="btn ghost" id="again">Retake</button></div>
+    <div class="hint" id="sharehint">Saves a PNG you can post or send.</div>
+    <div class="disclaimer" style="margin-top:18px">For entertainment only. The index is calibrated to a modelled population; the live percentile compares you to actual people who've taken this. Still not a cancer test. Please consult a doctor for that — not a website with this name.</div>
+  </div>`;
+  document.getElementById("again").onclick=()=>{state={screen:"landing",i:0,outcome:Array(Q.length).fill(null),answers:Array(Q.length).fill(null),mem:{}};go("landing");};
+  document.getElementById("share").onclick=()=>exportPNG();
+  fetchRealPercentile(r.iq);
+}
+async function fetchRealPercentile(iq){
+  const line=document.getElementById("pctline");
+  try{
+    const res=await fetch((API_BASE||"")+"/api/score",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({iq})});
+    if(!res.ok)throw 0;
+    const d=await res.json();
+    if(typeof d.percentile!=="number")throw 0;
+    LAST.shownPct=d.percentile;LAST.real=true;LAST.total=d.total;
+    if(line)line.innerHTML=`Higher than <b>${d.percentile}%</b> of <b>${d.total.toLocaleString()}</b> people who've taken this`;
+  }catch(e){
+    if(line)line.innerHTML=`Higher than about <b>${LAST.modelPct}%</b> of people <span class="muted">(modelled estimate)</span>`;
+  }
+}
+
+/* ---------- PNG export ---------- */
+function exportPNG(){
+  const r=LAST;const hint=document.getElementById("sharehint");hint.textContent="Rendering image…";
+  const W=1080,H=1350;const cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#0d0d15");g.addColorStop(1,"#08080c");x.fillStyle=g;x.fillRect(0,0,W,H);
+  rg(x,W*0.5,-60,520,"rgba(0,240,255,.10)");rg(x,W*1.05,H*1.02,560,"rgba(255,43,214,.10)");
+  const disp='"Orbitron",monospace',head='"Rajdhani",sans-serif';
+  x.textAlign="left";x.font=`700 30px ${disp}`;x.fillStyle="#00f0ff";x.fillText("DoUHaveCancer",70,92);
+  x.font=`600 22px ${head}`;x.fillStyle="#8688a6";x.fillText("COGNITIVE PROFILE",70,118);
+  x.textAlign="center";x.fillStyle="#8688a6";x.font=`700 24px ${head}`;x.fillText("ESTIMATED INDEX",W/2,182);
+  const sg=x.createLinearGradient(W/2-180,0,W/2+180,0);sg.addColorStop(0,"#00f0ff");sg.addColorStop(.55,"#ff2bd6");sg.addColorStop(1,"#b6ff3a");
+  x.fillStyle=sg;x.font=`900 150px ${disp}`;x.fillText(String(r.iq),W/2,330);
+  x.fillStyle="#cfd0e2";x.font=`600 28px ${head}`;
+  const pl=r.real?`Higher than ${r.shownPct}% of ${r.total.toLocaleString()} people`:`Higher than about ${r.shownPct}% of people`;
+  x.fillText(pl,W/2,378);
+  drawRadarCanvas(x,W/2,680,232,r.axisPct);
+  const keys=Object.keys(DOM);
+  keys.forEach((dn,i)=>{const col=i%3,row=Math.floor(i/3);const cxp=W/2+(col-1)*300;const cyp=990+row*120;
+    x.fillStyle=DOM[dn].hex;x.font=`700 24px ${head}`;x.fillText(DOM[dn].name.toUpperCase(),cxp,cyp);
+    x.font=`900 46px ${disp}`;x.fillText(r.domScore[dn]+"%",cxp,cyp+52);});
+  x.fillStyle="#6b6d86";x.font=`500 22px ${head}`;x.fillText("For-fun screener — not a clinically validated IQ test.",W/2,H-56);
+  const finish=()=>{const url=cv.toDataURL("image/png");const file=dataURLtoFile(url,"douhavecancer-result.png");
+    if(navigator.canShare&&file&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:"My DoUHaveCancer result",text:`My cognitive index: ${r.iq}. Turns out it's not cancer, it's my brain.`}).then(()=>hint.textContent="Shared.").catch(()=>{downloadURL(url);hint.textContent="Saved as douhavecancer-result.png";});
+    }else{downloadURL(url);hint.textContent="Saved as douhavecancer-result.png";}};
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(finish).catch(finish);else finish();
+}
+function rg(x,cx,cy,r,col){const grd=x.createRadialGradient(cx,cy,0,cx,cy,r);grd.addColorStop(0,col);grd.addColorStop(1,"transparent");x.fillStyle=grd;x.fillRect(0,0,1080,1350);}
+function drawRadarCanvas(x,cx,cy,R,axisPct){
+  const N=AXES.length,ang=i=>-Math.PI/2+i*2*Math.PI/N,pt=(i,r)=>[cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i))];
+  x.strokeStyle="rgba(255,255,255,.10)";x.lineWidth=1.4;
+  [0.25,.5,.75,1].forEach(f=>{x.beginPath();for(let i=0;i<=N;i++){const[px,py]=pt(i%N,R*f);i?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();});
+  for(let i=0;i<N;i++){const[px,py]=pt(i,R);x.beginPath();x.moveTo(cx,cy);x.lineTo(px,py);x.stroke();}
+  x.beginPath();for(let i=0;i<N;i++){const r=R*Math.max(.04,axisPct[i]/100);const[px,py]=pt(i,r);i?x.lineTo(px,py):x.moveTo(px,py);}x.closePath();
+  const fg=x.createLinearGradient(cx-R,cy-R,cx+R,cy+R);fg.addColorStop(0,"rgba(0,240,255,.48)");fg.addColorStop(.5,"rgba(255,43,214,.44)");fg.addColorStop(1,"rgba(182,255,58,.48)");
+  x.fillStyle=fg;x.fill();x.strokeStyle="rgba(255,255,255,.9)";x.lineWidth=3;x.shadowColor="rgba(0,240,255,.6)";x.shadowBlur=18;x.stroke();x.shadowBlur=0;
+  x.font='600 19px "Rajdhani",sans-serif';
+  for(let i=0;i<N;i++){const r=R*Math.max(.04,axisPct[i]/100);const[px,py]=pt(i,r);const hex=DOM[AXES[i].dom].hex;
+    x.fillStyle=hex;x.beginPath();x.arc(px,py,5,0,7);x.fill();
+    const[lx,ly]=pt(i,R+34);x.textAlign=lx>cx+6?"left":(lx<cx-6?"right":"center");x.fillText(AXES[i].key,lx,ly+5);}
+  x.textAlign="center";
+}
+function dataURLtoFile(url,name){try{const arr=url.split(","),mime=arr[0].match(/:(.*?);/)[1],bs=atob(arr[1]);let n=bs.length,u=new Uint8Array(n);while(n--)u[n]=bs.charCodeAt(n);return new File([u],name,{type:mime});}catch(e){return null;}}
+function downloadURL(url){const a=document.createElement("a");a.href=url;a.download="douhavecancer-result.png";document.body.appendChild(a);a.click();a.remove();}
+
+render();
+</script>
+</body>
+</html>
